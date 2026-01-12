@@ -4,7 +4,7 @@ CODE_BASE_PATH: "env/prod"
 ACTION_MESSAGE: "Starting Ansible Deployment"
 KEEP_APPROVAL_STAGE: true
 
-GIT_REPO_URL: "https://github.com/OT-MyGurukulam/Ansible_33.git"
+GIT_REPO_URL: "https://github.com/varshatripathi289-svg/Batch-33-MG-.git"
 GIT_BRANCH: "main"
 
 ANSIBLE_PLAYBOOK: "site.yml"
