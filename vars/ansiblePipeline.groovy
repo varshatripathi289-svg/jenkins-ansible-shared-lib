@@ -5,12 +5,6 @@ def call() {
     pipeline {
         agent any
 
-        environment {
-            SLACK_CHANNEL = config.SLACK_CHANNEL_NAME
-            ENV           = config.ENVIRONMENT
-            CODE_PATH     = config.CODE_BASE_PATH
-        }
-
         stages {
 
             stage('Clone Repository') {
@@ -25,13 +19,13 @@ def call() {
                     expression { config.KEEP_APPROVAL_STAGE == true }
                 }
                 steps {
-                    input message: "Approve deployment to ${ENV} environment?"
+                    input message: "Approve deployment to ${config.ENVIRONMENT} environment?"
                 }
             }
 
             stage('Ansible Playbook Execution') {
                 steps {
-                    dir(CODE_PATH) {
+                    dir(config.CODE_BASE_PATH) {
                         sh """
                         ansible-playbook \
                         -i ${config.ANSIBLE_INVENTORY} \
@@ -45,14 +39,14 @@ def call() {
         post {
             success {
                 slackSend(
-                    channel: SLACK_CHANNEL,
-                    message: "✅ SUCCESS: ${config.ACTION_MESSAGE} on ${ENV}"
+                    channel: config.SLACK_CHANNEL_NAME,
+                    message: "✅ SUCCESS: ${config.ACTION_MESSAGE} on ${config.ENVIRONMENT}"
                 )
             }
             failure {
                 slackSend(
-                    channel: SLACK_CHANNEL,
-                    message: "❌ FAILED: ${config.ACTION_MESSAGE} on ${ENV}"
+                    channel: config.SLACK_CHANNEL_NAME,
+                    message: "❌ FAILED: ${config.ACTION_MESSAGE} on ${config.ENVIRONMENT}"
                 )
             }
         }
