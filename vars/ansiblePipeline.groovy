@@ -1,54 +1,42 @@
-def call() {
+package org.jenkinsci.pipeline
 
-    def config = readYaml text: libraryResource('ansible-config.yml')
+def call(Map config = [:]) {
 
-    pipeline {
-        agent any
+    // Load configuration
+    def cfg = readYaml text: libraryResource('vars/ansible-config.yml')
 
-        stages {
+    node {
+        stage('Checkout SCM') {
+            checkout scm
+        }
 
-            stage('Clone Repository') {
-                steps {
-                    git branch: config.GIT_BRANCH,
-                        url: config.GIT_REPO_URL
-                }
-            }
-
-            stage('User Approval') {
-                when {
-                    expression { config.KEEP_APPROVAL_STAGE == true }
-                }
-                steps {
-                    input message: "Approve deployment to ${config.ENVIRONMENT} environment?"
-                }
-            }
-
-            stage('Ansible Playbook Execution') {
-                steps {
-                    dir(config.CODE_BASE_PATH) {
-                        sh """
-                        ansible-playbook \
-                        -i ${config.ANSIBLE_INVENTORY} \
-                        ${config.ANSIBLE_PLAYBOOK}
-                        """
-                    }
-                }
+        stage('Clone Repository') {
+            dir("${cfg.CODE_BASE_PATH}") {
+                git branch: cfg.GIT_BRANCH,
+                    url: cfg.GIT_REPO_URL,
+                    credentialsId: cfg.GIT_CREDENTIALS_ID
             }
         }
 
-        post {
-            success {
-                slackSend(
-                    channel: config.SLACK_CHANNEL_NAME,
-                    message: "✅ SUCCESS: ${config.ACTION_MESSAGE} on ${config.ENVIRONMENT}"
-                )
+        // User approval stage
+        if (cfg.KEEP_APPROVAL_STAGE) {
+            stage('User Approval') {
+                input message: "Approve deployment to ${cfg.ENVIRONMENT} environment?"
             }
-            failure {
-                slackSend(
-                    channel: config.SLACK_CHANNEL_NAME,
-                    message: "❌ FAILED: ${config.ACTION_MESSAGE} on ${config.ENVIRONMENT}"
-                )
+        }
+
+        stage('Ansible Playbook Execution') {
+            dir("${cfg.CODE_BASE_PATH}") {
+                sh "ansible-playbook -i ${cfg.ANSIBLE_INVENTORY} ${cfg.ANSIBLE_PLAYBOOK}"
             }
+        }
+
+        stage('Post Actions') {
+            slackSend(
+                channel: cfg.SLACK_CHANNEL_NAME,
+                tokenCredentialId: cfg.SLACK_CREDENTIAL_ID,
+                message: "${cfg.ACTION_MESSAGE}"
+            )
         }
     }
 }
