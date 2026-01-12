@@ -1,11 +1,18 @@
+# Slack and Jenkins settings
 SLACK_CHANNEL_NAME: "build-status"
 ENVIRONMENT: "prod"
-CODE_BASE_PATH: "env/prod"
+CODE_BASE_PATH: "."                  # repo root
 ACTION_MESSAGE: "Starting Ansible Deployment"
 KEEP_APPROVAL_STAGE: true
 
+# Git repo settings
 GIT_REPO_URL: "https://github.com/varshatripathi289-svg/Batch-33-MG-.git"
 GIT_BRANCH: "main"
 
+
+# Ansible playbook settings
 ANSIBLE_PLAYBOOK: "site.yml"
 ANSIBLE_INVENTORY: "inventory/prod"
+
+# Slack credentials
+SLACK_CREDENTIAL_ID: "slack-cred"
