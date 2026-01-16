@@ -15,13 +15,32 @@ class AnsibleExecutor implements Serializable {
             "ANSIBLE_HOST_KEY_CHECKING=False"
         ]) {
 
-            steps.sh """
-                echo "===== ANSIBLE EXECUTION START ====="
-                ansible-playbook \
-                  -i ${config.INVENTORY} \
-                  ${config.PLAYBOOK}
-                echo "===== ANSIBLE EXECUTION END ====="
-            """
+            // If SSH key is provided, use it
+            if (config.SSH_CREDENTIAL_ID) {
+
+                steps.withCredentials([
+                    steps.sshUserPrivateKey(
+                        credentialsId: config.SSH_CREDENTIAL_ID,
+                        keyFileVariable: 'SSH_KEY'
+                    )
+                ]) {
+                    steps.sh """
+                        ansible-playbook \
+                          -i ${config.INVENTORY} \
+                          ${config.PLAYBOOK} \
+                          --private-key \$SSH_KEY
+                    """
+                }
+
+            } else {
+
+                // Run without SSH key (fallback)
+                steps.sh """
+                    ansible-playbook \
+                      -i ${config.INVENTORY} \
+                      ${config.PLAYBOOK}
+                """
+            }
         }
     }
 }
