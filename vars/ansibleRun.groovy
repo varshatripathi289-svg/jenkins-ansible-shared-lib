@@ -1,11 +1,10 @@
 def call(Map config) {
 
-    // Validate required inputs
     if (!config.INVENTORY || !config.PLAYBOOK) {
-        error "INVENTORY and PLAYBOOK are mandatory parameters"
+        error "INVENTORY and PLAYBOOK are mandatory"
     }
 
-    // Copy ansible.cfg from resources to workspace
+    // Load ansible.cfg from resources
     writeFile(
         file: 'ansible.cfg',
         text: libraryResource('ansible/ansible.cfg')
